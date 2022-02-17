@@ -30,7 +30,7 @@ __global__ void computeParallel(int* X, int* query, int D, int* hop, int* id, in
 	d[index] = sum2;
 }
 
-int nearest_id(int start_point, int max_hop, int* query_data, int* X) {
+int nearest_id(int start_point, int max_hop, int* query_data, int* X, int* d, int* hop, int* id) {
 
 	//std::cout<<"Edges : ";
 	//for (int i = 0; i<V*(L+1); ++i)
@@ -42,12 +42,12 @@ int nearest_id(int start_point, int max_hop, int* query_data, int* X) {
 	int min_d = std::numeric_limits<int>::max();
 	int min_id = -1;
 	do {
-		int* id;
-		int* hop;
+		//int* id;
+		//int* hop;
 		int siz = q.size();
 		//std::cout<<"Size : "<<siz<<"\n";
-		cudaMallocManaged(&id, siz * sizeof(int));
-		cudaMallocManaged(&hop, siz * sizeof(int));
+		//cudaMallocManaged(&id, siz * sizeof(int));
+		//cudaMallocManaged(&hop, siz * sizeof(int));
 		int ctr = 0;
 		while (!q.empty()) {
 			auto now = q.front();
@@ -58,13 +58,13 @@ int nearest_id(int start_point, int max_hop, int* query_data, int* X) {
 			//std::cout<<"ID : "<<id[ctr]<<" "<<"HOP : "<<hop[ctr]<<"\n";
 			ctr++;
 		}
-		int* d_d;
-		cudaMallocManaged(&d_d, siz * sizeof(int));
-		computeParallel << <siz, 1 >> > (X, query_data, D, hop, id, d_d);
-		//cudaDeviceSynchronize();
+		//int* d_d;
+		//cudaMallocManaged(&d_d, siz * sizeof(int));
+		computeParallel << <siz, 1 >> > (X, query_data, D, hop, id, d);
+		cudaDeviceSynchronize();
 
-		int* d = new int[siz];
-		cudaMemcpy(d, d_d, siz * sizeof(int), cudaMemcpyDeviceToHost);
+		/*int* d = new int[siz];
+		cudaMemcpy(d, d_d, siz * sizeof(int), cudaMemcpyDeviceToHost);*/
 
 		for (int i = 0; i < siz; ++i) {
 			//std::cout<<"Node rn : "<<id[i]<<" " <<"Hop : "<<hop[i]<<"\n";
@@ -150,15 +150,24 @@ int main(int argc, char** argv) {
 
 
 	int* query_data = new int[D];
-
+	
 	cudaMallocManaged(&query_data, D * sizeof(int));
+
+	int* d; 
+	cudaMallocManaged(&d, V * sizeof(int));
+
+	int* id; 
+	int* hophop; 
+	cudaMallocManaged(&id, V * sizeof(int));
+	cudaMallocManaged(&hophop, V * sizeof(int));
+
 	for (int i = 0; i < Q; ++i) {
 		int start_point, hop;
 		fscanf(fin, "%d%d", &start_point, &hop);
 		for (int i = 0; i < D; ++i) {
 			fscanf(fin, "%d", &query_data[i]);
 		}
-		fprintf(fout, "%d\n", nearest_id(start_point, hop, query_data, X_d));
+		fprintf(fout, "%d\n", nearest_id(start_point, hop, query_data, X_d, d, id, hophop));
 	}
 
 
