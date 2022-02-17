@@ -2,29 +2,21 @@
 #include<string.h>
 #include<algorithm>
 #include<queue>
-#include<iostream>
 
 using namespace std;
 
-int V, D, E, L, K, A, B, C, M, Q;
-int* X_d;
+int V,D,E,L,K,A,B,C,M,Q;
 int* X;
 int* edges;
 
-
-__global__ void squared_l2_dist(int* origin, int* nodes, int* distances, int D) {
-
-	int index = threadIdx.x + blockDim.x * blockIdx.x;
-	int* x = nodes + index * D;
-
+int squared_l2_dist(int* x,int* y,int D){
 	int sum2 = 0;
-	for (int i = 0; i < D; ++i)
-		sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
-
-	distances[index] = sum2;
+	for(int i = 0;i < D;++i)
+		sum2 += (x[i] - y[i]) * (x[i] - y[i]);
+	return sum2;
 }
 
-void explore(int start_point, int max_hop) {
+vector<int> explore(int start_point, int max_hop) {
 	queue<pair<int, int>> q;
 	vector<int> nodes;
 	q.push(make_pair(start_point, 0));
@@ -51,68 +43,45 @@ void explore(int start_point, int max_hop) {
 	return nodes;
 }
 
-
-
-int main(int argc, char** argv) {
-	FILE* fin = fopen(argv[1], "r");
-	FILE* fout = fopen(argv[2], "w");
-	fscanf(fin, "%d%d%d%d%d%d%d%d%d%d", &V, &D, &E, &L, &K, &A, &B, &C, &M, &Q);
+int main(int argc,char** argv){
+	FILE* fin = fopen(argv[1],"r");
+	FILE* fout = fopen(argv[2],"w");
+	fscanf(fin,"%d%d%d%d%d%d%d%d%d%d",&V,&D,&E,&L,&K,&A,&B,&C,&M,&Q);
 	X = new int[V * D];
-
-
-
-	for (int i = 0; i < K; ++i)
-		fscanf(fin, "%d", &X[i]);
-
-	for (int i = K; i < V * D; ++i)
-	{
+	for(int i = 0;i < K;++i)
+		fscanf(fin,"%d",&X[i]);
+	for(int i = K;i < V * D;++i)
 		X[i] = ((long long)A * X[i - 1] + (long long)B * X[i - 2] + C) % M;
-	}
-
-
 	edges = new int[V * (L + 1)];
-	for (int i = 0; i < V; ++i) {
+	for(int i = 0;i < V;++i){
 		edges[i * (L + 1)] = 0;
 	}
-	for (int i = 0; i < E; ++i) {
-		int u, v;
-		fscanf(fin, "%d%d", &u, &v);
+	for(int i = 0;i < E;++i){
+		int u,v;
+		fscanf(fin,"%d%d",&u,&v);
 		int degree = edges[u * (L + 1)];
 		edges[u * (L + 1) + degree + 1] = v;
 		++edges[u * (L + 1)];
 	}
-
-
-
-	int* query_data;
-	cudaMallocManaged(&query_data, D * sizeof(int));
-
-	for (int i = 0; i < Q; ++i) {
-		int start_point, hop;
-		fscanf(fin, "%d%d", &start_point, &hop);
-		for (int i = 0; i < D; ++i) {
-			fscanf(fin, "%d", &query_data[i]);
+	int* query_data = new int[D];
+	for(int i = 0;i < Q;++i){
+		int start_point,hop;
+		fscanf(fin,"%d%d",&start_point,&hop);
+		for(int i = 0;i < D;++i){
+			fscanf(fin,"%d",&query_data[i]);
 		}
 
+		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);
-		int* targets;
-		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
-		
-		int* distances;
-		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
 
-		int ctr = 0;
-		for (int node : allPossibleNodes) {
-			targets[ctr] = X + node * D;
-			ctr++;
+		int* distances = new int[allPossibleNodes.size()];
+
+		// cuda component 
+		for (int j = 0; j < allPossibleNodes.size(); ++j) {
+			distances[j] = squared_l2_dist(X + allPossibleNodes.at(j) * D, query_data, D);
 		}
 
-		int threadsPerBlock = 256;
-		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
-
-		squared_l2_dist << <blocksPerGrid, threadsPerBlock > >> (query_data, targets, distances);
-		cudaDeviceSynchronize();
-
+		// get min 
 		int min_d = 2147483647;
 		int min_id = 2147483647;
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
@@ -125,34 +94,14 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		fprintf(fout, "%d\n", min_id));
-
-		cudaFree(targets);
-		cudaFree(distances);
+		fprintf(fout,"%d\n",min_id);
 	}
 	fclose(fin);
 	fclose(fout);
+
+	delete[] X;
 	delete[] edges;
-
-	cudaFree(query_data);
-	return 0;
-}
-
-
-
-
-	fclose(fin);
-	fclose(fout);
-	//delete[] X;
-	delete[] edges;
-	//delete[] query_data;
-	cudaFree(X);
-	cudaFree(query_data);
-
-	t2 = clock();
-
-	std::cout << "Time taken: " << (t2 - t1) /
-		(double)CLOCKS_PER_SEC << std::endl;
+	delete[] query_data;
 
 	return 0;
 }
