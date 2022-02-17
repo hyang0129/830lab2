@@ -110,8 +110,8 @@ int main(int argc, char** argv) {
 
 		int start_point, hop;
 		fscanf(fin, "%d%d", &start_point, &hop);
-		for (int i = 0; i < D; ++i) {
-			fscanf(fin, "%d", &query_data[i]);
+		for (int j = 0; j < D; ++j) {
+			fscanf(fin, "%d", &query_data[j]);
 		}
 
 
