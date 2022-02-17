@@ -100,7 +100,13 @@ int main(int argc,char** argv){
 		// 
 		int* distances = new int[allPossibleNodes.size()];
 
-		int* targets = new int[allPossibleNodes.size()][];
+		int** targets;
+		
+		targets = new int*[allPossibleNodes.size()];
+		for (int j = 0; j < allPossibleNodes.size(); ++j) {
+			targets[j] = new int[D]; 
+		}
+
 
 		// cuda 
 		//cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
@@ -112,7 +118,6 @@ int main(int argc,char** argv){
 			targets[j] = X + allPossibleNodes.at(j) * D;
 		}
 
-		
 
 
 		// non cuda
