@@ -3,6 +3,7 @@
 #include<algorithm>
 #include<queue>
 #include<iostream>
+#include <time.h>
 
 int V, D, E, L, K, A, B, C, M, Q;
 int* X_d;
@@ -95,6 +96,11 @@ int nearest_id(int start_point, int max_hop, int* query_data, int* X) {
 int main(int argc, char** argv) {
 	FILE* fin = fopen(argv[1], "r");
 	FILE* fout = fopen(argv[2], "w");
+	
+	clock_t t1, t2;
+
+	t1 = clock();
+	
 	fscanf(fin, "%d%d%d%d%d%d%d%d%d%d", &V, &D, &E, &L, &K, &A, &B, &C, &M, &Q);
 	X = new int[V * D];
 
@@ -163,6 +169,12 @@ int main(int argc, char** argv) {
 	//delete[] query_data;
 	cudaFree(X);
 	cudaFree(query_data);
+
+	t2 = clock();
+
+	std::cout << "Time taken: " << (t2 - t1) /
+		(double)CLOCKS_PER_SEC << endl;
+
 	return 0;
 }
 
