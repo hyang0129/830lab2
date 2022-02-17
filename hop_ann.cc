@@ -102,26 +102,36 @@ int main(int argc,char** argv){
 
 		int* targets = new int[allPossibleNodes.size()][];
 
+		// cuda 
+		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+		// cuda 
+
+
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
 			targets[j] = X + allPossibleNodes.at(j) * D;
 		}
 
-		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			distances[j] = squared_l2_dist(targets[j], query_data, D);
-		}
-
-		//cuda component 
-
-		//int* targets; 
-		//cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
-
-		//int* distances; 
-		//cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+		
 
 
+		// non cuda
+		
 		//for (int j = 0; j < allPossibleNodes.size(); ++j) {
-		//	targets[j] = X + allPossibleNodes.at(j) * D;
+		//	distances[j] = squared_l2_dist(targets[j], query_data, D);
 		//}
+
+		// non cuda 
+		
+
+		//cuda 
+
+		int threadsPerBlock = 256;
+		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
+
+		cuda_squared_l2_dist << <blocksPerGrid, threadsPerBlock > >> (query_data, targets, distances);
+		cudaDeviceSynchronize();
+		//cuda 
 
 		// get min 
 		int min_d = 2147483647;
