@@ -17,17 +17,17 @@ int squared_l2_dist(int* x,int* y,int D){
 }
 
 
-__global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances) {
-
-	int index = threadIdx.x + blockDim.x * blockIdx.x;
-	int* x = nodes[index];
-
-	int sum2 = 0;
-	for (int i = 0; i < D; ++i)
-		sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
-
-	distances[index] = sum2;
-}
+//__global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances) {
+//
+//	int index = threadIdx.x + blockDim.x * blockIdx.x;
+//	int* x = nodes[index];
+//
+//	int sum2 = 0;
+//	for (int i = 0; i < D; ++i)
+//		sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
+//
+//	distances[index] = sum2;
+//}
 
 
 vector<int> explore(int start_point, int max_hop) {
