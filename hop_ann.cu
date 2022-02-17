@@ -5,13 +5,13 @@
 
 using namespace std;
 
-int V,D,E,L,K,A,B,C,M,Q;
+int V, D, E, L, K, A, B, C, M, Q;
 int* X;
 int* edges;
 
-int squared_l2_dist(int* x,int* y,int D){
+int squared_l2_dist(int* x, int* y, int D) {
 	int sum2 = 0;
-	for(int i = 0;i < D;++i)
+	for (int i = 0; i < D; ++i)
 		sum2 += (x[i] - y[i]) * (x[i] - y[i]);
 	return sum2;
 }
@@ -73,22 +73,22 @@ vector<int> explore(int start_point, int max_hop) {
 	return nodes;
 }
 
-int main(int argc,char** argv){
-	FILE* fin = fopen(argv[1],"r");
-	FILE* fout = fopen(argv[2],"w");
-	fscanf(fin,"%d%d%d%d%d%d%d%d%d%d",&V,&D,&E,&L,&K,&A,&B,&C,&M,&Q);
+int main(int argc, char** argv) {
+	FILE* fin = fopen(argv[1], "r");
+	FILE* fout = fopen(argv[2], "w");
+	fscanf(fin, "%d%d%d%d%d%d%d%d%d%d", &V, &D, &E, &L, &K, &A, &B, &C, &M, &Q);
 	X = new int[V * D];
-	for(int i = 0;i < K;++i)
-		fscanf(fin,"%d",&X[i]);
-	for(int i = K;i < V * D;++i)
+	for (int i = 0; i < K; ++i)
+		fscanf(fin, "%d", &X[i]);
+	for (int i = K; i < V * D; ++i)
 		X[i] = ((long long)A * X[i - 1] + (long long)B * X[i - 2] + C) % M;
 	edges = new int[V * (L + 1)];
-	for(int i = 0;i < V;++i){
+	for (int i = 0; i < V; ++i) {
 		edges[i * (L + 1)] = 0;
 	}
-	for(int i = 0;i < E;++i){
-		int u,v;
-		fscanf(fin,"%d%d",&u,&v);
+	for (int i = 0; i < E; ++i) {
+		int u, v;
+		fscanf(fin, "%d%d", &u, &v);
 		int degree = edges[u * (L + 1)];
 		edges[u * (L + 1) + degree + 1] = v;
 		++edges[u * (L + 1)];
@@ -99,28 +99,28 @@ int main(int argc,char** argv){
 
 	// cuda 
 	//cudaMallocManaged(&query_data, D * sizeof(int));
-	
-	for(int i = 0;i < Q;++i){
-		int start_point,hop;
-		fscanf(fin,"%d%d",&start_point,&hop);
-		for(int i = 0;i < D;++i){
-			fscanf(fin,"%d",&query_data[i]);
+
+	for (int i = 0; i < Q; ++i) {
+		int start_point, hop;
+		fscanf(fin, "%d%d", &start_point, &hop);
+		for (int i = 0; i < D; ++i) {
+			fscanf(fin, "%d", &query_data[i]);
 		}
 
 		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);
 
-		
+
 
 		// non cuda component 
 		// 
 		int* distances = new int[allPossibleNodes.size()];
 
-		int* targets = new int[allPossibleNodes.size()*D];
-		
+		int* targets = new int[allPossibleNodes.size() * D];
+
 
 		// cuda 
-		
+
 		//cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
 		//cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
 		// cuda 
@@ -137,20 +137,20 @@ int main(int argc,char** argv){
 		}
 
 		// non cuda
-		
+
 		//for (int j = 0; j < allPossibleNodes.size(); ++j) {
 		//	distances[j] = squared_l2_dist(targets + j * D, query_data, D);
 		//}
 
 
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			squared_l2_dist2(query_data, targets , D, j);
+			squared_l2_dist2(query_data, targets, distances, D, j);
 		}
 
-	
+
 
 		// non cuda 
-		
+
 
 		//cuda 
 
@@ -178,7 +178,7 @@ int main(int argc,char** argv){
 			}
 		}
 
-		fprintf(fout,"%d\n",min_id);
+		fprintf(fout, "%d\n", min_id);
 	}
 	fclose(fin);
 	fclose(fout);
