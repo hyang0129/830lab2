@@ -194,9 +194,6 @@ int main(int argc, char** argv) {
 	fclose(fin);
 	fclose(fout);
 
-	delete[] X;
-	delete[] edges;
-	delete[] query_data;
 
 	return 0;
 }
