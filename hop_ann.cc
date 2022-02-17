@@ -142,7 +142,7 @@ int main(int argc,char** argv){
 
 		printf("before sync");
 
-		cudaDeviceSynchronize();
+		//cudaDeviceSynchronize();
 
 		//cuda 
 
