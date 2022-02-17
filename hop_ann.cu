@@ -139,6 +139,9 @@ int main(int argc,char** argv){
 		int threadsPerBlock = 4;
 		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
 		cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D);
+
+		printf("test");
+
 		cudaDeviceSynchronize();
 
 		//cuda 
