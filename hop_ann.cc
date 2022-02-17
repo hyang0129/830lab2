@@ -21,9 +21,9 @@ __global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances, in
 
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 
-	#if __CUDA_ARCH__ >= 200
-	printf("%d \n", index);
-	#endif 
+	//#if __CUDA_ARCH__ >= 200
+	//printf("%d \n", index);
+	//#endif 
 
 	int* x = nodes + index * D;
 
