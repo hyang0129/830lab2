@@ -120,11 +120,12 @@ int main(int argc, char** argv) {
 		edges[u * (L + 1) + degree + 1] = v;
 		++edges[u * (L + 1)];
 	}
-	std::cout << "Edges: ";
+	//std::cout << "Edges: ";
 
-	for (int i = 0; i < V * (L + 1); ++i) {
-		std::cout << edges[i] << " ";
-	}
+	//for (int i = 0; i < V * (L + 1); ++i) {
+	//	std::cout << edges[i] << " ";
+	//}
+
 	cudaMallocManaged(&X_d, (V * D) * sizeof(int));
 	cudaMemcpy(X_d, X, V * D * sizeof(int), cudaMemcpyHostToDevice);
 
