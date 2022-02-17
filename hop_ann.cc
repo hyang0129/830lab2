@@ -114,7 +114,8 @@ int main(int argc, char** argv) {
 			fscanf(fin, "%d", &query_data[i]);
 		}
 
-		
+
+		printf("QUERY %d \n", index);
 
 		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);

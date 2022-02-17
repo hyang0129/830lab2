@@ -98,17 +98,24 @@ int main(int argc, char** argv) {
 	}
 
 
-	int* query_data = new int[D];
+	
 
 	// cuda 
-	cudaMallocManaged(&query_data, D * sizeof(int));
+	
 
 	for (int i = 0; i < Q; ++i) {
+
+		int* query_data = new int[D];	
+		cudaMallocManaged(&query_data, D * sizeof(int));
+
 		int start_point, hop;
 		fscanf(fin, "%d%d", &start_point, &hop);
 		for (int i = 0; i < D; ++i) {
 			fscanf(fin, "%d", &query_data[i]);
 		}
+
+
+		printf("QUERY %d \n", index);
 
 		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);
