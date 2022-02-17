@@ -102,11 +102,12 @@ int main(int argc, char** argv) {
 
 	// cuda 
 	
+	int* query_data = new int[D];
+	cudaMallocManaged(&query_data, D * sizeof(int));
 
 	for (int i = 0; i < Q; ++i) {
 
-		int* query_data = new int[D];	
-		cudaMallocManaged(&query_data, D * sizeof(int));
+
 
 		int start_point, hop;
 		fscanf(fin, "%d%d", &start_point, &hop);
