@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 		}
 
 
-		printf("QUERY %d \n", Q);
+		printf("QUERY %d \n", i);
 
 		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);
