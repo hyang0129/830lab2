@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < D; ++i) {
 			fscanf(fin, "%d", &query_data[i]);
 		}
-		fprintf(fout, "%d\n", nearest_id(start_point, hop, query_data_d, X_d));
+		fprintf(fout, "%d\n", nearest_id(start_point, hop, query_data, X_d));
 	}
 
 
