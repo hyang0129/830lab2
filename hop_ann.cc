@@ -19,7 +19,7 @@ int squared_l2_dist(int* x,int* y,int D){
 
 __global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances, int D) {
 
-	int index = threadIdx.x + blockDim.x * blockIdx.x;
+	int index = blockDim.x * blockIdx.x + threadIdx.x;
 
 	#if __CUDA_ARCH__ >= 200
 	printf("%d \n", index);
@@ -136,7 +136,7 @@ int main(int argc,char** argv){
 
 		//cuda 
 
-		int threadsPerBlock = 16;
+		int threadsPerBlock = 4;
 		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
 		cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D);
 		cudaDeviceSynchronize();
