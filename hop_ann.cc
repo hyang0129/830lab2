@@ -60,7 +60,9 @@ int nearest_id(int start_point, int max_hop, int* query_data, int* X, int* d, in
 		}
 		//int* d_d;
 		//cudaMallocManaged(&d_d, siz * sizeof(int));
-		computeParallel << <siz, 1 >> > (X, query_data, D, hop, id, d);
+		int threadsPerBlock = 256;
+		int blocksPerGrid = (siz + threadsPerBlock - 1) / threadsPerBlock;
+		computeParallel << <blocksPerGrid, threadsPerBlock >> > (X, query_data, D, hop, id, d);
 		cudaDeviceSynchronize();
 
 		/*int* d = new int[siz];
