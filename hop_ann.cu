@@ -3,106 +3,59 @@
 #include<algorithm>
 #include<queue>
 #include<iostream>
-#include <time.h>
+
+using namespace std;
 
 int V, D, E, L, K, A, B, C, M, Q;
 int* X_d;
 int* X;
 int* edges;
 
-int squared_l2_dist(int* x, int* y, int D) {
+
+__global__ void squared_l2_dist(int* origin, int* nodes, int* distances, int D) {
+
+	int index = threadIdx.x + blockDim.x * blockIdx.x;
+	int* x = nodes[index];
+
 	int sum2 = 0;
 	for (int i = 0; i < D; ++i)
-		sum2 += (x[i] - y[i]) * (x[i] - y[i]);
-	return sum2;
+		sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
+
+	distances[index] = sum2;
 }
 
-__global__ void computeParallel(int* X, int* query, int D, int* hop, int* id, int* d) {
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int sum2 = 0;
-	int* x = X + id[index] * D;
+void explore(int start_point, int max_hop) {
+	queue<pair<int, int>> q;
+	vector<int> nodes;
+	q.push(make_pair(start_point, 0));
+	nodes.push_back(start_point);
+	while (!q.empty()) {
+		auto now = q.front();
+		q.pop();
+		int id = now.first;
+		int hop = now.second;
 
-	int* y = query;
-	for (int i = 0; i < D; ++i) {
-		sum2 += (x[i] - y[i]) * (x[i] - y[i]);
+		if (hop + 1 <= max_hop) {
+			int degree = edges[id * (L + 1)];
+
+			for (int i = 1; i <= degree; ++i) {
+				int v = edges[id * (L + 1) + i];
+
+				q.push(std::make_pair(v, hop + 1));
+				nodes.push_back(v);
+			}
+
+		}
 	}
 
-	d[index] = sum2;
+	return nodes;
 }
 
-int nearest_id(int start_point, int max_hop, int* query_data, int* X, int* d, int* hop, int* id) {
 
-	//std::cout<<"Edges : ";
-	//for (int i = 0; i<V*(L+1); ++i)
-	//	std::cout<<edges[i];
-	//std::cout<<"\n";
-
-	std::queue<std::pair<int, int>> q;
-	q.push(std::make_pair(start_point, 0));
-	int min_d = std::numeric_limits<int>::max();
-	int min_id = -1;
-	do {
-		//int* id;
-		//int* hop;
-		int siz = q.size();
-		//std::cout<<"Size : "<<siz<<"\n";
-		//cudaMallocManaged(&id, siz * sizeof(int));
-		//cudaMallocManaged(&hop, siz * sizeof(int));
-		int ctr = 0;
-		while (!q.empty()) {
-			auto now = q.front();
-			q.pop();
-			id[ctr] = now.first;
-			hop[ctr] = now.second;
-
-			//std::cout<<"ID : "<<id[ctr]<<" "<<"HOP : "<<hop[ctr]<<"\n";
-			ctr++;
-		}
-		//int* d_d;
-		//cudaMallocManaged(&d_d, siz * sizeof(int));
-		int threadsPerBlock = 256;
-		int blocksPerGrid = (siz + threadsPerBlock - 1) / threadsPerBlock;
-		computeParallel << <blocksPerGrid, threadsPerBlock >> > (X, query_data, D, hop, id, d);
-		cudaDeviceSynchronize();
-
-		/*int* d = new int[siz];
-		cudaMemcpy(d, d_d, siz * sizeof(int), cudaMemcpyDeviceToHost);*/
-
-		for (int i = 0; i < siz; ++i) {
-			//std::cout<<"Node rn : "<<id[i]<<" " <<"Hop : "<<hop[i]<<"\n";
-			if ((d[i] < min_d) || (d[i] == min_d && id[i] < min_id)) {
-				min_d = d[i];
-				min_id = id[i];
-			}
-			if (hop[i] + 1 <= max_hop) {
-				//std::cout<<"Nodes being inserted for id : "<<id[i]<< " : ";
-				int degree = edges[id[i] * (L + 1)];
-				//std::cout<<"Degree : "<<degree<<" : ";
-				for (int j = 1; j <= degree; ++j) {
-					int v = edges[id[i] * (L + 1) + j];
-					//std::cout<<"ID : "<< id[i] << " L+1 : "<<L+1<<" Inter : "<<id[i]*(L+1)<<" Index : "<<id[i] * (L + 1) + i<<" Value : "<<v<<" ";
-					q.push(std::make_pair(v, hop[i] + 1));
-				}
-				//std::cout<<"\n";
-			}
-		}
-		//std::cout<<"\n";
-		cudaFree(id);
-		cudaFree(hop);
-		cudaFree(d);
-	} while (!q.empty());
-	//std::cout<<"\n\n";
-	return min_id;
-}
 
 int main(int argc, char** argv) {
 	FILE* fin = fopen(argv[1], "r");
 	FILE* fout = fopen(argv[2], "w");
-	
-	clock_t t1, t2;
-
-	t1 = clock();
-	
 	fscanf(fin, "%d%d%d%d%d%d%d%d%d%d", &V, &D, &E, &L, &K, &A, &B, &C, &M, &Q);
 	X = new int[V * D];
 
@@ -128,40 +81,11 @@ int main(int argc, char** argv) {
 		edges[u * (L + 1) + degree + 1] = v;
 		++edges[u * (L + 1)];
 	}
-	//std::cout << "Edges: ";
-
-	//for (int i = 0; i < V * (L + 1); ++i) {
-	//	std::cout << edges[i] << " ";
-	//}
-
-	cudaMallocManaged(&X_d, (V * D) * sizeof(int));
-	cudaMemcpy(X_d, X, V * D * sizeof(int), cudaMemcpyHostToDevice);
-
-	//int* query_data = new int[D];
-	//int* query_data_d;
-	//cudaMallocManaged(&query_data_d, D * sizeof(int));
-	//for (int i = 0; i < Q; ++i) {
-	//	int start_point, hop;
-	//	fscanf(fin, "%d%d", &start_point, &hop);
-	//	for (int i = 0; i < D; ++i) {
-	//		fscanf(fin, "%d", &query_data[i]);
-	//	}
-	//	cudaMemcpy(query_data_d, query_data, D * sizeof(int), cudaMemcpyHostToDevice);
-	//	fprintf(fout, "%d\n", nearest_id(start_point, hop, query_data_d, X_d));
-	//}
 
 
-	int* query_data = new int[D];
-	
+
+	int* query_data;
 	cudaMallocManaged(&query_data, D * sizeof(int));
-
-	int* d; 
-	cudaMallocManaged(&d, V * sizeof(int));
-
-	int* id; 
-	int* hophop; 
-	cudaMallocManaged(&id, V * sizeof(int));
-	cudaMallocManaged(&hophop, V * sizeof(int));
 
 	for (int i = 0; i < Q; ++i) {
 		int start_point, hop;
@@ -169,8 +93,52 @@ int main(int argc, char** argv) {
 		for (int i = 0; i < D; ++i) {
 			fscanf(fin, "%d", &query_data[i]);
 		}
-		fprintf(fout, "%d\n", nearest_id(start_point, hop, query_data, X_d, d, id, hophop));
+
+		vector<int> allPossibleNodes = explore(start_point, hop);
+		int* targets;
+		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
+		
+		int* distances;
+		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+
+		int ctr = 0;
+		for (int node : allPossibleNodes) {
+			targets[ctr] = X + node * D;
+			ctr++;
+		}
+
+		int threadsPerBlock = 256;
+		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
+
+		squared_l2_dist << <blocksPerGrid, threadsPerBlock > >> (query_data, targets, distances);
+		cudaDeviceSynchronize();
+
+		int min_d = 2147483647;
+		int min_id = 2147483647;
+		for (int j = 0; j < allPossibleNodes.size(); ++j) {
+			int id = allPossibleNodes.at(j);
+			int d = distances[j];
+
+			if (d < min_d || (d == min_d && id < min_id)) {
+				min_d = d;
+				min_id = id;
+			}
+		}
+
+		fprintf(fout, "%d\n", min_id));
+
+		cudaFree(targets);
+		cudaFree(distances);
 	}
+	fclose(fin);
+	fclose(fout);
+	delete[] edges;
+
+	cudaFree(query_data);
+	return 0;
+}
+
+
 
 
 	fclose(fin);
