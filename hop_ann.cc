@@ -138,14 +138,14 @@ int main(int argc,char** argv){
 
 		// non cuda
 		
-		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			distances[j] = squared_l2_dist(targets + j * D, query_data, D);
-		}
-
-
 		//for (int j = 0; j < allPossibleNodes.size(); ++j) {
-		//	squared_l2_dist2(query_data, targets , D, j);
+		//	distances[j] = squared_l2_dist(targets + j * D, query_data, D);
 		//}
+
+
+		for (int j = 0; j < allPossibleNodes.size(); ++j) {
+			squared_l2_dist2(query_data, targets , D, j);
+		}
 
 	
 
