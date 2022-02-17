@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
 	t2 = clock();
 
 	std::cout << "Time taken: " << (t2 - t1) /
-		(double)CLOCKS_PER_SEC << endl;
+		(double)CLOCKS_PER_SEC << std::endl;
 
 	return 0;
 }
