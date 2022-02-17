@@ -28,7 +28,7 @@ void squared_l2_dist2(int* origin, int* nodes, int* distances, int D, int index)
 	distances[index] = sum2;
 }
 
-__global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances, int D) {
+__global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances, int D, int total_elements) {
 
 	int index = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -36,13 +36,16 @@ __global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances, in
 	//printf("%d \n", index);
 	//#endif 
 
-	int* x = nodes + index * D;
+	if (index < total_elements)
+	{
+		int* x = nodes + index * D;
 
-	int sum2 = 0;
-	for (int i = 0; i < D; ++i)
-		sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
+		int sum2 = 0;
+		for (int i = 0; i < D; ++i)
+			sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
 
-	distances[index] = sum2;
+		distances[index] = sum2;
+	}
 }
 
 
@@ -156,7 +159,8 @@ int main(int argc, char** argv) {
 
 		int threadsPerBlock = 4;
 		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
-		cuda_squared_l2_dist <<<allPossibleNodes.size(), 1>>> (query_data, targets, distances, D);
+		printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+		cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D, allPossibleNodes.size());
 
 		//printf("before sync");
 
