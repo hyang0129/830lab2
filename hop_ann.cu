@@ -16,6 +16,20 @@ int squared_l2_dist(int* x,int* y,int D){
 	return sum2;
 }
 
+
+__global__ void cuda_squared_l2_dist(int* origin, int* nodes, int* distances) {
+
+	int index = threadIdx.x + blockDim.x * blockIdx.x;
+	int* x = nodes[index];
+
+	int sum2 = 0;
+	for (int i = 0; i < D; ++i)
+		sum2 += (origin[i] - x[i]) * (origin[i] - x[i]);
+
+	distances[index] = sum2;
+}
+
+
 vector<int> explore(int start_point, int max_hop) {
 	queue<pair<int, int>> q;
 	vector<int> nodes;
@@ -63,7 +77,13 @@ int main(int argc,char** argv){
 		edges[u * (L + 1) + degree + 1] = v;
 		++edges[u * (L + 1)];
 	}
+
+
 	int* query_data = new int[D];
+
+	// cuda 
+	cudaMallocManaged(&query_data, D * sizeof(int));
+	
 	for(int i = 0;i < Q;++i){
 		int start_point,hop;
 		fscanf(fin,"%d%d",&start_point,&hop);
@@ -74,12 +94,44 @@ int main(int argc,char** argv){
 		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);
 
+		
+
+		// non cuda component 
+		// 
 		int* distances = new int[allPossibleNodes.size()];
 
-		// cuda component 
+		int* targets = new int[allPossibleNodes.size()][];
+
+		// cuda 
+		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+		// cuda 
+
+
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			distances[j] = squared_l2_dist(X + allPossibleNodes.at(j) * D, query_data, D);
+			targets[j] = X + allPossibleNodes.at(j) * D;
 		}
+
+		
+
+
+		// non cuda
+		
+		//for (int j = 0; j < allPossibleNodes.size(); ++j) {
+		//	distances[j] = squared_l2_dist(targets[j], query_data, D);
+		//}
+
+		// non cuda 
+		
+
+		//cuda 
+
+		int threadsPerBlock = 256;
+		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
+
+		cuda_squared_l2_dist << <blocksPerGrid, threadsPerBlock > >> (query_data, targets, distances);
+		cudaDeviceSynchronize();
+		//cuda 
 
 		// get min 
 		int min_d = 2147483647;
