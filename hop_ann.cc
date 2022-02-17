@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 	int* query_data = new int[D];
 
 	// cuda 
-	//cudaMallocManaged(&query_data, D * sizeof(int));
+	cudaMallocManaged(&query_data, D * sizeof(int));
 
 	for (int i = 0; i < Q; ++i) {
 		int start_point, hop;
@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
 
 		// cuda 
 
-		//cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
-		//cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
 		// cuda 
 
 
@@ -143,9 +143,9 @@ int main(int argc, char** argv) {
 		//}
 
 
-		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			squared_l2_dist2(query_data, targets, distances, D, j);
-		}
+		//for (int j = 0; j < allPossibleNodes.size(); ++j) {
+		//	squared_l2_dist2(query_data, targets, distances, D, j);
+		//}
 
 
 
@@ -154,9 +154,9 @@ int main(int argc, char** argv) {
 
 		//cuda 
 
-		//int threadsPerBlock = 4;
-		//int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
-		//cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D);
+		int threadsPerBlock = 4;
+		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
+		cuda_squared_l2_dist <<<allPossibleNodes.size(), 1>>> (query_data, targets, distances, D);
 
 		//printf("before sync");
 
