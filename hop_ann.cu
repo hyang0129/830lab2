@@ -144,7 +144,7 @@ int main(int argc,char** argv){
 
 
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			distances[j] = squared_l2_dist2(query_data, targets , D, j);
+			squared_l2_dist2(query_data, targets , D, j);
 		}
 
 	
