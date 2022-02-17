@@ -128,6 +128,13 @@ int main(int argc, char** argv) {
 
 		int* targets = new int[allPossibleNodes.size() * D];
 
+
+		// cuda 
+
+		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+		// cuda 
+
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
 			int p = j * D;
 
@@ -137,15 +144,6 @@ int main(int argc, char** argv) {
 				targets[p + k] = temp[k];
 			}
 		}
-
-
-		// cuda 
-
-		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
-		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
-		// cuda 
-
-
 
 
 		// non cuda
@@ -166,7 +164,7 @@ int main(int argc, char** argv) {
 
 		//cuda 
 
-		int threadsPerBlock = 256;
+		int threadsPerBlock = 4;
 		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
 		//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
 		cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D, allPossibleNodes.size());
