@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 	int* query_data = new int[D];
 
 	// cuda 
-	//cudaMallocManaged(&query_data, D * sizeof(int));
+	cudaMallocManaged(&query_data, D * sizeof(int));
 
 	for (int i = 0; i < Q; ++i) {
 		int start_point, hop;
@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
 
 		// cuda 
 
-		//cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
-		//cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&targets, D * allPossibleNodes.size() * sizeof(int));
+		cudaMallocManaged(&distances, allPossibleNodes.size() * sizeof(int));
 		// cuda 
 
 
