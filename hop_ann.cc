@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 		}
 
 
-		printf("QUERY %d \n", i);
+		//printf("QUERY %d \n", i);
 
 		// explore for all nodes 
 		vector<int> allPossibleNodes = explore(start_point, hop);
@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
 
 		int threadsPerBlock = 4;
 		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
-		printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+		//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
 		cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D, allPossibleNodes.size());
 
 		//printf("before sync");
