@@ -82,7 +82,7 @@ int main(int argc,char** argv){
 	int* query_data = new int[D];
 
 	// cuda 
-	cudaMallocManaged(&query_data, D * sizeof(int));
+	//cudaMallocManaged(&query_data, D * sizeof(int));
 	
 	for(int i = 0;i < Q;++i){
 		int start_point,hop;
@@ -100,12 +100,12 @@ int main(int argc,char** argv){
 		// 
 		int* distances = new int[allPossibleNodes.size()];
 
-		int** targets;
+		int* targets = new int[allPossibleNodes.size()*D];
 		
-		targets = new int*[allPossibleNodes.size()];
-		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			targets[j] = new int[1]; 
-		}
+		//targets = new int*[allPossibleNodes.size()];
+		//for (int j = 0; j < allPossibleNodes.size(); ++j) {
+		//	targets[j] = new int[1]; 
+		//}
 
 
 		// cuda 
@@ -115,7 +115,13 @@ int main(int argc,char** argv){
 
 
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			targets[j] = X + allPossibleNodes.at(j) * D;
+			int p = j * D;
+
+			int* temp = X + allPossibleNodes.at(j) * D;
+
+			for (int k = 0; k < D; k++) {
+				targets[p + k] = temp[k];
+			}
 		}
 
 
@@ -123,7 +129,7 @@ int main(int argc,char** argv){
 		// non cuda
 		
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			distances[j] = squared_l2_dist(targets[j], query_data, D);
+			distances[j] = squared_l2_dist(targets + j * D, query_data, D);
 		}
 
 		// non cuda 
