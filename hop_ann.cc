@@ -15,7 +15,7 @@ int* edges;
 __global__ void squared_l2_dist(int* origin, int* nodes, int* distances, int D) {
 
 	int index = threadIdx.x + blockDim.x * blockIdx.x;
-	int* x = nodes[index];
+	int* x = nodes + index * D;
 
 	int sum2 = 0;
 	for (int i = 0; i < D; ++i)
