@@ -104,7 +104,7 @@ int main(int argc,char** argv){
 		
 		targets = new int*[allPossibleNodes.size()];
 		for (int j = 0; j < allPossibleNodes.size(); ++j) {
-			targets[j] = new int[D]; 
+			targets[j] = new int[1]; 
 		}
 
 
