@@ -140,11 +140,14 @@ int main(int argc,char** argv){
 		int blocksPerGrid = (allPossibleNodes.size() + threadsPerBlock - 1) / threadsPerBlock;
 		cuda_squared_l2_dist <<<blocksPerGrid, threadsPerBlock>>> (query_data, targets, distances, D);
 
-		printf("test");
+		printf("before sync");
 
 		cudaDeviceSynchronize();
 
 		//cuda 
+
+
+		printf("after sync");
 
 		// get min 
 		int min_d = 2147483647;
